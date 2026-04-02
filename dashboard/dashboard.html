@@ -1,235 +1,397 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendor Risk Dashboard - TPRM Results</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#080c14;--surface:#0d1420;--surface2:#111a2e;--border:#1e2d4a;--accent:#0ea5e9;--accent2:#38bdf8;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--orange:#f97316;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:24px;background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(14,165,233,0.08) 0%,transparent 70%),repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(30,45,74,0.3) 39px,rgba(30,45,74,0.3) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(30,45,74,0.15) 39px,rgba(30,45,74,0.15) 40px);}
-.demo-banner{background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.25);border-radius:6px;padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--yellow);letter-spacing:0.5px;}
-.demo-banner a{color:var(--accent);text-decoration:none;}
-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border);}
-.header-left h1{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
-.header-left h1 span{color:var(--accent);}
-.header-left p{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.5px;}
-.header-right{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
-.live-badge{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--green);background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);padding:6px 12px;border-radius:4px;letter-spacing:1px;}
-.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
-.btn-secondary{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 16px;border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.15s;}
-.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
-.btn-export{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 16px;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.3);color:var(--accent);border-radius:4px;cursor:pointer;transition:all 0.15s;}
-.btn-export:hover{background:rgba(14,165,233,0.2);}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;position:relative;overflow:hidden;}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(14,165,233,0.3),transparent);}
-.card-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
-.big-number{font-family:var(--mono);font-size:36px;font-weight:700;line-height:1;margin-bottom:4px;}
-.big-number.green{color:var(--green);}.big-number.red{color:var(--red);}.big-number.yellow{color:var(--yellow);}.big-number.accent{color:var(--accent);}
-.card-sub{font-size:12px;color:var(--muted);font-family:var(--mono);}
-.section-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
-.rec-banner{border-radius:8px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;border:1px solid;position:relative;overflow:hidden;}
-.rec-banner.approve{background:rgba(34,197,94,0.06);border-color:rgba(34,197,94,0.3);}
-.rec-banner.conditional{background:rgba(234,179,8,0.06);border-color:rgba(234,179,8,0.3);}
-.rec-banner.deny{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.3);}
-.rec-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
-.rec-value{font-size:20px;font-weight:800;margin-top:4px;}
-.rec-value.green{color:var(--green);}.rec-value.yellow{color:var(--yellow);}.rec-value.red{color:var(--red);}
-.framework-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.framework-name{font-family:var(--mono);font-size:11px;color:var(--text);width:160px;flex-shrink:0;}
-.bar-track{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:3px;transition:width 1.5s cubic-bezier(0.16,1,0.3,1);}
-.bar-fill.green{background:linear-gradient(90deg,#16a34a,#22c55e);}
-.bar-fill.yellow{background:linear-gradient(90deg,#ca8a04,#eab308);}
-.bar-fill.red{background:linear-gradient(90deg,#dc2626,#ef4444);}
-.bar-fill.accent{background:linear-gradient(90deg,#0284c7,#0ea5e9);}
-.bar-pct{font-family:var(--mono);font-size:11px;width:36px;text-align:right;flex-shrink:0;}
-.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-family:var(--mono);letter-spacing:0.5px;font-weight:600;}
-.badge.high{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
-.badge.medium{background:rgba(234,179,8,0.1);color:var(--yellow);border:1px solid rgba(234,179,8,0.2);}
-.badge.low{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
-.badge.open{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
-.findings-table{width:100%;border-collapse:collapse;}
-.findings-table th{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);text-align:left;padding:0 0 10px 0;border-bottom:1px solid var(--border);text-transform:uppercase;}
-.findings-table td{font-family:var(--mono);font-size:11px;color:var(--text);padding:10px 0;border-bottom:1px solid rgba(30,45,74,0.5);vertical-align:top;}
-.findings-table tr:last-child td{border-bottom:none;}
-.finding-q{color:var(--muted);font-size:10px;margin-top:3px;}
-.poam-item{padding:12px 0;border-bottom:1px solid rgba(30,45,74,0.5);}
-.poam-item:last-child{border-bottom:none;}
-.poam-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.poam-id{font-family:var(--mono);font-size:10px;color:var(--accent);}
-.poam-title{font-size:12px;font-weight:600;margin-bottom:3px;}
-.poam-meta{font-family:var(--mono);font-size:10px;color:var(--muted);}
-.progress-bar{height:3px;background:var(--surface2);border-radius:2px;margin-top:8px;overflow:hidden;}
-.progress-fill-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
-.vendor-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-.vi-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
-.vi-value{font-size:13px;font-weight:600;}
-footer{margin-top:24px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-footer p{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.5px;}
-footer a{color:var(--accent);text-decoration:none;}
-@media(max-width:900px){.grid-4,.grid-2-1,.grid-2{grid-template-columns:1fr 1fr;}.vendor-info-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:600px){.grid-4,.grid-2-1,.grid-2,.vendor-info-grid{grid-template-columns:1fr;}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor Risk Dashboard - SIG Lite Assessment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#060913;
+      --surface:#0b1222;
+      --surface2:#0e1830;
+      --border:#1b2a4b;
+      --glow:rgba(14,165,233,.30);
+      --text:rgba(233,245,255,.92);
+      --muted:rgba(233,245,255,.58);
+      --accent:#0ea5e9;
+      --accent2:#38bdf8;
+      --green:#22c55e;
+      --yellow:#eab308;
+      --red:#ef4444;
+      --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans:'Syne', ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box; margin:0; padding:0;}
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--sans);
+      min-height:100vh;
+      padding:24px;
+      overflow-x:hidden;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% -20%, rgba(56,189,248,.18), transparent),
+        radial-gradient(ellipse 70% 60% at 110% 40%, rgba(14,165,233,.12), transparent),
+        linear-gradient(180deg, rgba(14,165,233,.06), transparent 42%);
+    }
+    a{color:var(--accent); text-decoration:none;}
+    .header{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      padding-bottom:24px; border-bottom:1px solid var(--border);
+      margin-bottom:24px;
+    }
+    .title{font-size:22px; font-weight:800; letter-spacing:-.6px;}
+    .title span{color:var(--accent);}
+    .subtitle{font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:6px;}
+    .meta{
+      display:grid; grid-template-columns:1fr auto; gap:10px 18px;
+      align-items:center; justify-items:end;
+    }
+    .badge-live{
+      display:flex; align-items:center; gap:8px;
+      border-radius:999px;
+      padding:7px 12px;
+      background:rgba(34,197,94,.08);
+      border:1px solid rgba(34,197,94,.25);
+      font-family:var(--mono); font-size:11px; color:var(--green);
+    }
+    .badge-dot{width:6px;height:6px;border-radius:999px;background:var(--green); box-shadow:0 0 10px rgba(34,197,94,.6);}
+    .btn{
+      border-radius:8px; border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--text);
+      padding:9px 14px;
+      font-family:var(--mono); font-size:11px; letter-spacing:.8px;
+      cursor:pointer;
+      transition:transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .btn:hover{border-color:var(--accent2); transform:translateY(-1px); background:rgba(14,165,233,.08);}
+    .btn:active{transform:translateY(0px);}
+    .btn-ghost{background:var(--surface2);}
+
+    .grid-4{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:18px;}
+    .grid-2-1{display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:18px;}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
+    @media (max-width:980px){
+      .header{flex-direction:column; gap:18px; align-items:flex-start;}
+      .meta{justify-items:start;}
+      .grid-4{grid-template-columns:1fr 1fr;}
+      .grid-2-1{grid-template-columns:1fr;}
+      .grid-2{grid-template-columns:1fr;}
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:'';
+      position:absolute;
+      inset:-1px;
+      background: radial-gradient(600px 160px at 40% 0%, rgba(14,165,233,.08), transparent);
+      pointer-events:none;
+      opacity:1;
+    }
+    .card-content{position:relative; z-index:1;}
+    .card-label{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:1.8px; color:var(--muted);}
+    .big-number{font-family:var(--mono); font-size:40px; font-weight:700; line-height:1; margin-top:7px;}
+    .big-number.small{font-size:32px;}
+    .subline{font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:4px;}
+
+    .green{color:var(--green);} .yellow{color:var(--yellow);} .red{color:var(--red);} .accent{color:var(--accent);}
+
+    .section-title{display:flex; gap:10px; align-items:center; margin-bottom:12px;}
+    .section-title span{font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); white-space:nowrap;}
+    .section-title::after{content:''; height:1px; background:var(--border); flex:1; opacity:.8;}
+
+    .exec-text{font-family:var(--sans); font-size:14px; color:rgba(233,245,255,.85); line-height:1.55;}
+    .exec-text em{font-family:var(--mono); font-style:normal; color:var(--accent2);} 
+    .exec-text strong{color:var(--text);} 
+
+    .list{display:flex; flex-direction:column; gap:10px; margin-top:10px;}
+    .row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:rgba(11,18,34,.45);
+    }
+    .row:hover{border-color:var(--accent2);}
+    .row-label{font-family:var(--mono); font-size:12px; color:var(--text);}
+    .row-sub{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:2px;}
+
+    .pill{font-family:var(--mono); font-size:11px; border-radius:999px; padding:4px 8px; border:1px solid var(--border); background:rgba(8,12,20,.35); color:var(--text); white-space:nowrap;}
+
+    .bar{
+      margin-top:8px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      overflow:hidden;
+    }
+    .bar-fill{
+      height:100%;
+      border-radius:999px;
+      width:0;
+      background:linear-gradient(90deg, rgba(14,165,233,.9), rgba(56,189,248,.65));
+      box-shadow:0 0 0 1px rgba(14,165,233,.2);
+    }
+
+    .small{font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:8px;}
+  </style>
 </head>
 <body>
-<div class="demo-banner" id="demo-banner">
-  DEMO MODE - Showing sample data. Complete the <a href="index.html">SIG Lite Intake Form</a> to generate a real vendor report.
-  <span style="cursor:pointer;color:var(--muted)" onclick="document.getElementById('demo-banner').style.display='none'">x</span>
-</div>
-<header>
-  <div class="header-left">
-    <h1>VENDOR RISK <span>DASHBOARD</span></h1>
-    <p id="header-sub">TPRM ASSESSMENT // NIST CSF 2.0 // ISO 27001:2022 // SIG LITE</p>
-  </div>
-  <div class="header-right">
-    <div class="live-badge"><div class="live-dot"></div><span id="assess-date-badge">LIVE</span></div>
-    <a href="index.html" class="btn-secondary">NEW ASSESSMENT</a>
-    <button class="btn-export" onclick="exportReport()">EXPORT CSV</button>
-  </div>
-</header>
-<div class="rec-banner" id="rec-banner">
-  <div><div class="rec-label">Assessment Outcome</div><div class="rec-value" id="rec-value">-</div></div>
-  <div style="text-align:right">
-    <div class="rec-label">Vendor</div>
-    <div style="font-size:16px;font-weight:700;margin-top:4px" id="vendor-name-display">-</div>
-    <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="rec-meta">-</div>
-  </div>
-</div>
-<div class="grid-4">
-  <div class="card"><div class="card-label">Overall Score</div><div class="big-number" id="kpi-score">-</div><div class="card-sub">Weighted compliance score</div></div>
-  <div class="card"><div class="card-label">Risk Rating</div><div class="big-number" id="kpi-risk">-</div><div class="card-sub">Based on score + findings</div></div>
-  <div class="card"><div class="card-label">Total Findings</div><div class="big-number red" id="kpi-findings">-</div><div class="card-sub"><span id="kpi-high">-</span> HIGH / <span id="kpi-med">-</span> MED / <span id="kpi-low">-</span> LOW</div></div>
-  <div class="card"><div class="card-label">Questions Answered</div><div class="big-number accent" id="kpi-answered">-</div><div class="card-sub">of <span id="kpi-total">-</span> total SIG Lite questions</div></div>
-</div>
-<div class="card" style="margin-bottom:20px">
-  <div class="section-title">Vendor Profile</div>
-  <div class="vendor-info-grid">
-    <div><div class="vi-label">COMPANY</div><div class="vi-value" id="vi-company">-</div></div>
-    <div><div class="vi-label">CONTACT</div><div class="vi-value" id="vi-contact">-</div></div>
-    <div><div class="vi-label">EMAIL</div><div class="vi-value" id="vi-email">-</div></div>
-    <div><div class="vi-label">DATA CLASSIFICATION</div><div class="vi-value" id="vi-dataclass">-</div></div>
-    <div><div class="vi-label">INDUSTRY</div><div class="vi-value" id="vi-industry">-</div></div>
-    <div><div class="vi-label">ASSESSMENT DATE</div><div class="vi-value" id="vi-date">-</div></div>
-  </div>
-</div>
-<div class="grid-2-1">
-  <div class="card">
-    <div class="section-title">Domain Compliance Scores</div>
-    <div id="domain-bars"></div>
-  </div>
-  <div class="card">
-    <div class="section-title">Risk Summary</div>
-    <div id="severity-bars" style="margin-bottom:20px"></div>
-    <div style="border-top:1px solid var(--border);padding-top:16px">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px">FRAMEWORK MAPPING</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text);line-height:2">
-        <div>NIST CSF 2.0 <span style="color:var(--muted)">- GV, ID, PR, DE, RS, RC</span></div>
-        <div>ISO 27001:2022 <span style="color:var(--muted)">- Annex A 5-8</span></div>
-        <div>SIG Lite <span style="color:var(--muted)">- Domains A-L</span></div>
+  <div class="header">
+    <div>
+      <div class="title">Third-Party Risk Reporting <span>/ SIG Lite</span></div>
+      <div class="subtitle" id="subtitle">Loading assessment...</div>
+    </div>
+    <div class="meta">
+      <div class="badge-live"><span class="badge-dot"></span>LIVE REPORT</div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" onclick="window.location.href='index.html'">Run Another</button>
+        <button class="btn" onclick="exportJson()">Export JSON</button>
       </div>
     </div>
   </div>
-</div>
-<div class="card" style="margin-bottom:20px">
-  <div class="section-title">Security Findings</div>
-  <table class="findings-table">
-    <thead><tr><th>Finding ID</th><th>Domain</th><th>Severity</th><th>Finding</th></tr></thead>
-    <tbody id="findings-tbody"><tr><td colspan="4" style="color:var(--muted);padding:20px 0">Loading...</td></tr></tbody>
-  </table>
-</div>
-<div class="grid-2">
-  <div class="card"><div class="section-title">Auto-Generated POA&amp;M</div><div id="poam-container"></div></div>
-  <div class="card"><div class="section-title">Recommended Next Steps</div><div id="next-steps"></div></div>
-</div>
-<footer>
-  <p>Built by <a href="https://github.com/ldenis001">ldenis001</a> // Third-Party Vendor Risk Assessment Lab // Simulated data for demonstration</p>
-  <p>Last updated: <span id="ts"></span></p>
-</footer>
-<script src="sig-lite-map.js"></script>
-<script>
-document.getElementById('ts').textContent=new Date().toLocaleString();
-const DEMO={vendorName:'CloudSync Solutions (Demo)',contactName:'Alex Rivera',contactEmail:'arivera@cloudsync.demo',dataClass:'confidential',industry:'SaaS / Cloud Infrastructure',assessDate:'2025-04-02',answers:{
-  'A.1':{value:'yes',weight:3},'A.2':{value:'partial',weight:3},'A.3':{value:'yes',weight:2},'A.4':{value:'no',weight:2},
-  'B.1':{value:'yes',weight:3},'B.2':{value:'yes',weight:2},'B.3':{value:'partial',weight:2},
-  'C.1':{value:'no',weight:3},'C.2':{value:'partial',weight:3},'C.3':{value:'no',weight:2},'C.4':{value:'no',weight:2},'C.5':{value:'yes',weight:2},
-  'D.1':{value:'yes',weight:2},'D.2':{value:'yes',weight:2},'D.3':{value:'no',weight:1},
-  'E.1':{value:'yes',weight:2},'E.2':{value:'partial',weight:3},'E.3':{value:'no',weight:1},
-  'F.1':{value:'yes',weight:2},'F.2':{value:'yes',weight:1},
-  'G.1':{value:'yes',weight:2},'G.2':{value:'partial',weight:2},'G.3':{value:'no',weight:3},
-  'H.1':{value:'yes',weight:3},'H.2':{value:'partial',weight:3},'H.3':{value:'no',weight:2},
-  'I.1':{value:'partial',weight:3},'I.2':{value:'yes',weight:3},'I.3':{value:'yes',weight:2},
-  'J.1':{value:'yes',weight:2},'J.2':{value:'yes',weight:3},'J.3':{value:'partial',weight:2},
-  'K.1':{value:'yes',weight:3},'K.2':{value:'yes',weight:3},'K.3':{value:'partial',weight:2},
-  'L.1':{value:'no',weight:3},'L.2':{value:'yes',weight:2},'L.3':{value:'partial',weight:2}
-}};
-const raw=localStorage.getItem('sig_lite_assessment');
-const vendorData=raw?JSON.parse(raw):DEMO;
-if(raw)document.getElementById('demo-banner').style.display='none';
-const report=scoreAssessment(vendorData.answers);
-document.getElementById('assess-date-badge').textContent=vendorData.assessDate||'LIVE';
-document.getElementById('header-sub').textContent=vendorData.vendorName.toUpperCase()+' // NIST CSF 2.0 // ISO 27001:2022 // SIG LITE';
-const recMap={'APPROVE':{cls:'approve',color:'green'},'CONDITIONAL APPROVAL':{cls:'conditional',color:'yellow'},'DO NOT APPROVE':{cls:'deny',color:'red'}};
-const rc=recMap[report.recommendation]||recMap['DO NOT APPROVE'];
-document.getElementById('rec-banner').className='rec-banner '+rc.cls;
-document.getElementById('rec-value').className='rec-value '+rc.color;
-document.getElementById('rec-value').textContent=report.recommendation;
-document.getElementById('vendor-name-display').textContent=vendorData.vendorName;
-document.getElementById('rec-meta').textContent='Score: '+report.overallScore+'% - Risk: '+report.riskRating;
-const se=document.getElementById('kpi-score');se.textContent=report.overallScore+'%';se.className='big-number '+report.riskColor;
-const re=document.getElementById('kpi-risk');re.textContent=report.riskRating;re.className='big-number '+report.riskColor;
-document.getElementById('kpi-findings').textContent=report.totalFindings;
-document.getElementById('kpi-high').textContent=report.highFindings;
-document.getElementById('kpi-med').textContent=report.medFindings;
-document.getElementById('kpi-low').textContent=report.lowFindings;
-document.getElementById('kpi-answered').textContent=report.answeredCount;
-document.getElementById('kpi-total').textContent=report.totalQuestions;
-document.getElementById('vi-company').textContent=vendorData.vendorName||'-';
-document.getElementById('vi-contact').textContent=vendorData.contactName||'-';
-document.getElementById('vi-email').textContent=vendorData.contactEmail||'-';
-document.getElementById('vi-dataclass').textContent=(vendorData.dataClass||'-').toUpperCase();
-document.getElementById('vi-industry').textContent=vendorData.industry||'-';
-document.getElementById('vi-date').textContent=vendorData.assessDate||'-';
-function scoreColor(s){return s===null?'accent':s>=80?'green':s>=60?'yellow':'red';}
-const bc=document.getElementById('domain-bars');
-report.domainScores.forEach(d=>{
-  const sc=d.score!==null?d.score:0;const c=scoreColor(d.score);
-  const cv=c==='green'?'var(--green)':c==='yellow'?'var(--yellow)':'var(--red)';
-  bc.innerHTML+='<div class="framework-row"><div class="framework-name">'+d.id+': '+d.name+'</div><div class="bar-track"><div class="bar-fill '+c+'" style="width:0%" data-w="'+sc+'%"></div></div><div class="bar-pct" style="color:'+cv+'">'+(d.score!==null?d.score+'%':'N/A')+'</div></div>';
-});
-const mx=Math.max(report.highFindings,report.medFindings,report.lowFindings,1);
-document.getElementById('severity-bars').innerHTML='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;margin-bottom:4px"><span style="color:var(--red)">HIGH</span><span style="color:var(--muted)">'+report.highFindings+'</span></div><div class="bar-track"><div class="bar-fill red" style="width:0%" data-w="'+Math.round(report.highFindings/mx*100)+'%"></div></div></div><div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;margin-bottom:4px"><span style="color:var(--yellow)">MEDIUM</span><span style="color:var(--muted)">'+report.medFindings+'</span></div><div class="bar-track"><div class="bar-fill yellow" style="width:0%" data-w="'+Math.round(report.medFindings/mx*100)+'%"></div></div></div><div><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;margin-bottom:4px"><span style="color:var(--green)">LOW</span><span style="color:var(--muted)">'+report.lowFindings+'</span></div><div class="bar-track"><div class="bar-fill green" style="width:0%" data-w="'+Math.round(report.lowFindings/mx*100)+'%"></div></div></div>';
-setTimeout(()=>{document.querySelectorAll('.bar-fill[data-w]').forEach(b=>{b.style.width=b.dataset.w;});},300);
-const tb=document.getElementById('findings-tbody');
-if(report.findings.length===0){tb.innerHTML='<tr><td colspan="4" style="color:var(--green);font-family:var(--mono);font-size:12px;padding:20px 0">No findings - vendor demonstrates strong security posture.</td></tr>';}
-else{let n=1;tb.innerHTML='';report.domainScores.forEach(dom=>{dom.findings.forEach(f=>{const sv=f.severity.toLowerCase();tb.innerHTML+='<tr><td>F-'+String(n++).padStart(3,'0')+'</td><td>'+dom.id+': '+dom.name+'</td><td><span class="badge '+sv+'">'+f.severity+'</span></td><td><div>'+f.finding+'</div><div class="finding-q">'+f.question+'</div></td></tr>';});});}
-const pc=document.getElementById('poam-container');
-const hf=report.findings.filter(f=>f.severity==='HIGH');
-if(hf.length===0){pc.innerHTML='<div style="color:var(--green);font-family:var(--mono);font-size:12px">No HIGH severity findings requiring POA&M.</div>';}
-else{pc.innerHTML='';hf.forEach((f,i)=>{const dd=new Date();dd.setDate(dd.getDate()+30);pc.innerHTML+='<div class="poam-item"><div class="poam-top"><div><div class="poam-id">POAM-'+String(i+1).padStart(3,'0')+' // '+f.id+'</div><div class="poam-title">'+f.finding+'</div><div class="poam-meta">Due: '+dd.toISOString().split('T')[0]+' // Risk: HIGH</div></div><span class="badge open">OPEN</span></div><div class="progress-bar"><div class="progress-fill-bar" style="width:0%"></div></div></div>';});}
-const steps=[];
-if(report.recommendation==='DO NOT APPROVE'){steps.push({i:'x',t:'Reject vendor onboarding pending remediation of HIGH findings',c:'var(--red)'});steps.push({i:'>',t:'Send formal findings report to vendor security team',c:'var(--accent)'});steps.push({i:'>',t:'Schedule re-assessment in 60-90 days',c:'var(--accent)'});}
-else if(report.recommendation==='CONDITIONAL APPROVAL'){steps.push({i:'~',t:'Conditionally approve with POA&M agreement required',c:'var(--yellow)'});steps.push({i:'>',t:'Obtain signed remediation commitment from vendor',c:'var(--accent)'});steps.push({i:'>',t:'Track POA&M items to closure within agreed SLAs',c:'var(--accent)'});}
-else{steps.push({i:'v',t:'Approve vendor for onboarding',c:'var(--green)'});steps.push({i:'>',t:'Execute Data Processing Agreement (DPA) and MSA',c:'var(--accent)'});steps.push({i:'>',t:'Schedule annual reassessment',c:'var(--accent)'});}
-steps.push({i:'>',t:'File completed assessment in vendor risk register',c:'var(--muted)'});
-steps.push({i:'>',t:'Export CSV report for audit trail and GRC documentation',c:'var(--muted)'});
-document.getElementById('next-steps').innerHTML=steps.map(s=>'<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(30,45,74,0.5)"><div style="font-family:var(--mono);font-size:14px;color:'+s.c+';flex-shrink:0;width:16px">'+s.i+'</div><div style="font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.5">'+s.t+'</div></div>').join('');
-function exportReport(){
-  const rows=[['Finding ID','Domain','Question ID','Severity','Finding Description','Vendor','Date']];
-  let n=1;report.domainScores.forEach(d=>{d.findings.forEach(f=>{rows.push(['F-'+String(n++).padStart(3,'0'),d.id+': '+d.name,f.id,f.severity,f.finding,vendorData.vendorName,vendorData.assessDate]);});});
-  const csv=rows.map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='TPRM_'+(vendorData.vendorName||'vendor').replace(/\s+/g,'_')+'_'+vendorData.assessDate+'.csv';a.click();
-}
-function animateCount(el,target,suffix,dur){let s=0;const step=target/(dur/16);const t=setInterval(()=>{s=Math.min(s+step,target);el.textContent=Math.floor(s)+suffix;if(s>=target)clearInterval(t);},16);}
-animateCount(document.getElementById('kpi-findings'),report.totalFindings,'',1200);
-animateCount(document.getElementById('kpi-answered'),report.answeredCount,'',1200);
-</script>
+
+  <div class="grid-4">
+    <div class="card"><div class="card-content">
+      <div class="card-label">vendor</div>
+      <div class="big-number" id="vendor-name-card">—</div>
+      <div class="subline" id="vendor-meta">industry / data-class</div>
+    </div></div>
+
+    <div class="card"><div class="card-content">
+      <div class="card-label">risk tier</div>
+      <div class="big-number" id="risk-tier">—</div>
+      <div class="subline" id="risk-detail">risk score</div>
+    </div></div>
+
+    <div class="card"><div class="card-content">
+      <div class="card-label">weighted compliance</div>
+      <div class="big-number" id="compliance">—</div>
+      <div class="subline" id="compliance-detail">achieved / total</div>
+    </div></div>
+
+    <div class="card"><div class="card-content">
+      <div class="card-label">questions</div>
+      <div class="big-number small" id="questions">—</div>
+      <div class="subline" id="completion">completion</div>
+    </div></div>
+  </div>
+
+  <div class="grid-2-1">
+    <div class="card">
+      <div class="card-content">
+        <div class="section-title"><span>executive summary</span></div>
+        <div class="exec-text" id="exec-summary">
+          This report summarizes SIG Lite vendor responses. Complete the intake and return here.
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-content">
+        <div class="section-title"><span>report metadata</span></div>
+        <div class="list" style="margin-top:10px;">
+          <div>
+            <div class="row-label">Assessment date</div>
+            <div class="row-sub" id="assess-date">—</div>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="row-label">Generated</div>
+            <div class="row-sub" id="generated">—</div>
+          </div>
+          <div class="small">Note: N/A responses are excluded from weighted compliance and domain ranking.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-content">
+        <div class="section-title"><span>top remediation backlog</span></div>
+        <div class="list" id="remediation-list"></div>
+        <div class="small">Focus on high-weight NOs first, then PARTIAL controls.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-content">
+        <div class="section-title"><span>domain exposures</span></div>
+        <div class="list" id="domain-list"></div>
+        <div class="small">Domains are weighted by the SIG Lite question weights.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="sig-lite-map.js"></script>
+  <script>
+    function $(id){return document.getElementById(id);}
+    function safePct(n){return isFinite(n) ? Math.round(n*100) : 0;}
+    function nowIso(){return new Date().toISOString();}
+    function asDateLabel(d){return d ? String(d) : '—';}
+
+    function exportJson(){
+      const raw = localStorage.getItem('sig_lite_assessment');
+      if(!raw){alert('No assessment stored in this browser.'); return;}
+      const blob = new Blob([raw], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sig-lite-vendor-assessment.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function render(){
+      const stored = localStorage.getItem('sig_lite_assessment');
+      if(!stored){
+        $('subtitle').textContent = 'No stored assessment. Run intake first.';
+        return;
+      }
+      let assessment;
+      try{ assessment = JSON.parse(stored); }catch(e){ $('subtitle').textContent = 'Stored data unreadable.'; return; }
+      if(!assessment || !assessment.answers || typeof assessment.answers !== 'object'){
+        $('subtitle').textContent = 'Incomplete stored assessment.';
+        return;
+      }
+
+      const answers = assessment.answers;
+      const scoreMap = {yes:1, partial:0.5, no:0, na:null};
+
+      const questionIndex = {};
+      const domainIndex = {};
+      const allQuestions = [];
+
+      if (Array.isArray(SIG_LITE_DOMAINS)){
+        SIG_LITE_DOMAINS.forEach(dom => {
+          domainIndex[dom.id] = { id: dom.id, name: dom.name, total:0, achieved:0, gaps:0 };
+          dom.questions.forEach(q => {
+            questionIndex[q.id] = { text:q.text, weight:q.weight, domainId:dom.id };
+            allQuestions.push(q);
+          });
+        });
+      }
+
+      let totalWeightAll = 0;
+      allQuestions.forEach(q => totalWeightAll += Number(q.weight)||0);
+
+      let includedWeight = 0;
+      let achieved = 0;
+      let answeredCount = 0;
+
+      const remediation = [];
+
+      Object.entries(answers).forEach(([qid, obj]) => {
+        const val = obj && obj.value;
+        const weight = Number(obj && obj.weight) || 0;
+        const score = scoreMap[val];
+        const qinfo = questionIndex[qid] || {text:'Control', weight, domainId: String(qid).split('.')[0]};
+        if(score === null) return; // NA
+
+        answeredCount++;
+        includedWeight += weight;
+        achieved += weight * score;
+
+        const domain = domainIndex[qinfo.domainId] || (domainIndex[qinfo.domainId]={id:qinfo.domainId,name:qinfo.domainId,total:0,achieved:0,gaps:0});
+        domain.total += weight;
+        domain.achieved += weight*score;
+
+        const gap = weight * (1 - score);
+        domain.gaps += gap;
+        if(gap > 0){
+          remediation.push({qid, text:qinfo.text, weight, val, score, gap});
+        }
+      });
+
+      const compliance = includedWeight ? (achieved / includedWeight) : 0;
+      const riskScore = 1 - compliance;
+      const tier = compliance >= 0.86 ? {label:'LOW', class:'green'} : compliance >= 0.71 ? {label:'MODERATE', class:'yellow'} : {label:'HIGH', class:'red'};
+
+      $('subtitle').textContent = `${assessment.vendorName || 'Vendor'} · SIG Lite assessment`;
+      $('vendor-name-card').textContent = assessment.vendorName || 'Unknown Vendor';
+      $('vendor-meta').textContent = `${assessment.industry || '—'} · ${assessment.dataClass || 'unknown'}`;
+
+      $('risk-tier').textContent = tier.label;
+      $('risk-tier').className = `big-number ${tier.class}`;
+      $('risk-detail').textContent = `risk score ${safePct(riskScore)} / 100`;
+
+      $('compliance').textContent = `${safePct(compliance)}%`;
+      $('compliance-detail').textContent = `${achieved.toFixed(1)} / ${includedWeight.toFixed(1)} weight`;
+
+      const totalQuestions = allQuestions.length;
+      $('questions').textContent = `${answeredCount} / ${totalQuestions}`;
+      const completionPct = totalQuestions ? Math.round((answeredCount/totalQuestions)*100) : 0;
+      $('completion').textContent = `completion ${completionPct}%`;
+
+      $('assess-date').textContent = asDateLabel(assessment.assessDate);
+      $('generated').textContent = nowIso();
+
+      const narrative = tier.label === 'LOW'
+        ? `The vendor exhibits <em>strong control alignment</em> against SIG Lite. Primary recommendation: maintain evidence, update quarterly, and validate continuous monitoring signals.`
+        : tier.label === 'MODERATE'
+        ? `The vendor is <em>partially aligned</em> to SIG Lite controls. Focus on high-weight gaps with firm deadlines, and request corrective action plans with measurable artifacts.`
+        : `The vendor shows <em>significant control exposure</em>. Elevate to security leadership for decisioning, require remediation of high-weight NOs, and consider compensating controls and contractual security obligations.`;
+      $('exec-summary').innerHTML = `<strong>${tier.label} risk</strong> (${safePct(compliance)}% weighted compliance). ${narrative}`;
+
+      // remediation backlog
+      remediation.sort((a,b) => b.gap - a.gap);
+      const remList = $('remediation-list');
+      remList.innerHTML = '';
+      remediation.slice(0, 8).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.innerHTML = `
+          <div>
+            <div class="row-label">${item.qid} · ${item.text}</div>
+            <div class="row-sub">Weight ${item.weight} · Gap ${item.gap.toFixed(1)} · Answer ${item.val.toUpperCase()}</div>
+          </div>
+          <div class="pill">#${item.val==='no'?'NO':'PARTIAL'}</div>
+        `;
+        remList.appendChild(div);
+      });
+      if(remediation.length === 0){
+        remList.innerHTML = '<div class="row"><div class="row-label">No remediation backlog</div><div class="row-sub">All weighted controls satisfied (excluding N/A).</div></div>';
+      }
+
+      // domains
+      const domainList = $('domain-list');
+      domainList.innerHTML = '';
+      const domainsArr = Object.values(domainIndex).filter(d => d.total>0);
+      domainsArr.sort((a,b) => (b.gaps - a.gaps));
+      domainsArr.slice(0, 6).forEach(d => {
+        const complianceD = d.total ? (d.achieved/d.total) : 0;
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div>
+            <div class="row-label">${d.id}. ${domainIndex[d.id].name || 'Domain'}</div>
+            <div class="row-sub">${safePct(complianceD)}% weighted compliance · gap ${d.gaps.toFixed(1)}</div>
+            <div class="bar"><div class="bar-fill" style="width:${safePct(complianceD)}%"></div></div>
+          </div>
+          <div class="pill">${d.total.toFixed(1)} wt</div>
+        `;
+        domainList.appendChild(row);
+      });
+      if(domainsArr.length === 0){
+        domainList.innerHTML = '<div class="row"><div class="row-label">No domain scoring</div><div class="row-sub">Complete answers (excluding N/A) to score.</div></div>';
+      }
+    }
+
+    render();
+  </script>
 </body>
 </html>
