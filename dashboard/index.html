@@ -3,391 +3,352 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vendor Risk Intake - SIG Lite Assessment</title>
+  <title>Vendor Risk Intake / SIG Lite</title>
   <style>
-    :root {
-      --bg0: #070b13;
-      --bg1: #05070f;
-      --surface: rgba(255, 255, 255, 0.04);
-      --surface2: rgba(255, 255, 255, 0.07);
-      --border: rgba(255, 255, 255, 0.14);
-      --text: rgba(255, 255, 255, 0.92);
-      --muted: rgba(255, 255, 255, 0.62);
-      --accent: #0ea5e9;
-      --accent2: #38bdf8;
-      --danger: #ef4444;
-      --warning: #eab308;
-      --ok: #22c55e;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    :root{
+      --bg0:#070b13;
+      --bg1:#05070f;
+      --surface:rgba(255,255,255,.04);
+      --surface2:rgba(255,255,255,.07);
+      --border:rgba(255,255,255,.14);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --accent:#0ea5e9;
+      --accent2:#38bdf8;
+      --danger:#ef4444;
+      --warning:#eab308;
+      --ok:#22c55e;
+      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *{box-sizing:border-box; margin:0; padding:0;}
 
-    body {
-      min-height: 100vh;
-      font-family: var(--sans);
-      color: var(--text);
+    body{
+      min-height:100vh;
+      font-family:var(--sans);
+      color:var(--text);
+      padding:26px 18px 60px;
       background:
-        radial-gradient(900px 500px at 10% 0%, rgba(14, 165, 233, 0.18), transparent 55%),
-        radial-gradient(800px 500px at 100% 20%, rgba(233, 30, 99, 0.12), transparent 60%),
+        radial-gradient(900px 500px at 10% 0%, rgba(14,165,233,.18), transparent 55%),
+        radial-gradient(800px 500px at 100% 20%, rgba(233,30,99,.12), transparent 60%),
+        radial-gradient(900px 520px at 0% 100%, rgba(34,197,94,.10), transparent 55%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
     }
 
-    .shell {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px;
+    .wrap{max-width:1200px; margin:0 auto;}
+
+    .topbar{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      padding-bottom:14px;
+      margin-bottom:14px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.045), transparent);
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
+    .brand{font-family:var(--mono); letter-spacing:.08em; text-transform:uppercase; font-size:16px;}
+    .brand span{color:var(--accent);}    
+    .sub{margin-top:6px; font-family:var(--mono); color:var(--muted); font-size:12px;}
+
+    .top-actions{display:flex; gap:10px; align-items:center;}
+
+    .pill{
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:transparent;
+      color:var(--text);
+      font-family:var(--mono);
+      font-size:12px;
+      text-decoration:none;
+      cursor:pointer;
+      user-select:none;
     }
 
-    h1 {
-      font-size: 18px;
-      letter-spacing: -0.5px;
-      margin-bottom: 4px;
+    .pill:hover{border-color:rgba(255,255,255,.26);}
+    .pill.disabled{opacity:.5; pointer-events:none;}
+
+    .pill-ready{background:rgba(34,197,94,.10); border-color:rgba(34,197,94,.32);} 
+    .pill-pending{background:rgba(255,255,255,.04); color:var(--muted);} 
+
+    .summary-row{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      gap:12px;
+      margin:16px 0 18px;
     }
 
-    .tagline {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.6px;
+    .stat{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
     }
 
-    .pill {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--accent);
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(14, 165, 233, 0.3);
-      background: rgba(14, 165, 233, 0.08);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      height: fit-content;
+    .label{font-family:var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-size:12px;}
+    .value{margin-top:6px; font-family:var(--mono); font-size:24px;}
+    .meta{margin-top:6px; font-family:var(--mono); font-size:12px; color:var(--muted);} 
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-      animation: pulse 2.2s infinite;
+    .form-grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px;}
+    .input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.02); color:var(--text); font-family:var(--mono);}
+
+    .row{margin-top:12px;}
+
+    .progress{
+      margin-top:14px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
+    .bar{
+      height:100%;
+      width:0;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(56,189,248,.4), rgba(14,165,233,.95));
+      transition:width .25s ease;
     }
 
-    .panel {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
-      overflow: hidden;
+    .questions{margin-top:18px; display:flex; flex-direction:column; gap:14px;}
+
+    .domain-header{padding:12px 12px 0 12px; color:var(--muted); font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase;}
+
+    .q-card{margin-top:8px; background:var(--surface2); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:12px;}
+    .q-id{font-family:var(--mono); color:var(--muted); font-size:12px; margin-bottom:6px;}
+    .q-text{font-family:var(--sans); font-size:14px; line-height:1.5;}
+
+    .opts{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;}
+
+    .btn{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.02);
+      color:var(--text);
+      font-family:var(--mono);
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
     }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 14px;
+    .btn.selected-yes{background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.35);} 
+    .btn.selected-partial{background:rgba(234,179,8,.12); border-color:rgba(234,179,8,.35);} 
+    .btn.selected-no{background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.35);} 
+    .btn.selected-na{background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.22);} 
+
+    .submit-row{margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+    .hint{font-family:var(--mono); color:var(--muted); font-size:12px;}
+
+    .primary{
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(14,165,233,.15);
+      color:var(--text);
+      font-family:var(--mono);
+      cursor:pointer;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 220px;
-    }
+    .primary:disabled{opacity:.5; cursor:not-allowed;}
 
-    label {
-      font-size: 12px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.72);
-      letter-spacing: 0.3px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(0, 0, 0, 0.22);
-      color: var(--text);
-      outline: none;
-    }
-
-    input:focus, select:focus {
-      border-color: rgba(56, 189, 248, 0.55);
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
-    }
-
-    .progress-meta {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin: 12px 0 8px 0;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .progress-track {
-      height: 12px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    #progress-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.55), rgba(56, 189, 248, 0.1));
-      border-radius: 999px;
-      transition: width 0.25s ease;
-    }
-
-    .hint {
-      margin-top: 12px;
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 12px;
-    }
-
-    .q-stack {
-      margin-top: 14px;
-    }
-
-    .question {
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin: 12px 0;
-      background: rgba(0, 0, 0, 0.18);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    }
-
-    .question.answered {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: linear-gradient(180deg, rgba(56, 189, 248, 0.04), rgba(0, 0, 0, 0.16));
-    }
-
-    .q-id {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .q-text {
-      font-weight: 800;
-      letter-spacing: -0.2px;
-      margin-bottom: 10px;
-    }
-
-    .q-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .q-options button {
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.03);
-      color: rgba(255, 255, 255, 0.86);
-      padding: 8px 12px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    .q-options button:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: rgba(56, 189, 248, 0.08);
-      transform: translateY(-1px);
-    }
-
-    .q-options button.selected-yes {
-      border-color: rgba(34, 197, 94, 0.6);
-      background: rgba(34, 197, 94, 0.14);
-    }
-
-    .q-options button.selected-partial {
-      border-color: rgba(234, 179, 8, 0.6);
-      background: rgba(234, 179, 8, 0.14);
-    }
-
-    .q-options button.selected-no {
-      border-color: rgba(239, 68, 68, 0.6);
-      background: rgba(239, 68, 68, 0.14);
-    }
-
-    .q-options button.selected-na {
-      border-color: rgba(148, 163, 184, 0.55);
-      background: rgba(148, 163, 184, 0.14);
-    }
-
-    #submit-btn {
-      margin-top: 12px;
-      width: 100%;
-      border-radius: 14px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      padding: 12px 14px;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      background: rgba(56, 189, 248, 0.09);
-      color: rgba(255, 255, 255, 0.9);
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-    }
-
-    #submit-btn:hover {
-      border-color: rgba(56, 189, 248, 0.55);
-      background: rgba(56, 189, 248, 0.16);
-      transform: translateY(-1px);
-    }
-
-    #submit-btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-
-    #submit-btn.armed {
-      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.14);
-    }
-
-    @media (max-width: 900px) {
-      .form-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 600px) {
-      header { flex-direction: column; align-items: flex-start; }
-      .form-grid { grid-template-columns: 1fr; }
+    @media (max-width: 720px){
+      body{padding:18px 12px 40px;}
+      .form-grid{grid-template-columns: 1fr;}
     }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header>
+  <div class="wrap">
+    <div class="topbar">
       <div>
-        <h1><span style="color: var(--accent);">SIG Lite</span> · Vendor Risk Intake</h1>
-        <div class="tagline">Homelab TPRM lab — answer at least 80% to generate a report.</div>
+        <div class="brand">Third-Party Risk Intake <span>/ SIG Lite</span></div>
+        <div class="sub">Homelab TPRM lab → fill intake, auto-generate report.</div>
       </div>
-      <div class="pill"><span class="dot"></span> DASHBOARD READY</div>
-    </header>
+      <div class="top-actions">
+        <a id="report-pill" class="pill pill-pending disabled" href="dashboard.html">REPORT PENDING</a>
+      </div>
+    </div>
 
-    <div class="panel">
+    <div class="summary-row">
+      <div class="stat">
+        <div class="label">Vendor</div>
+        <div class="value" id="summary-vendor">--</div>
+        <div class="meta" id="summary-meta">industry / data class</div>
+      </div>
+      <div class="stat">
+        <div class="label">Risk tier</div>
+        <div class="value" id="summary-tier">--</div>
+        <div class="meta" id="summary-score">risk score</div>
+      </div>
+      <div class="stat">
+        <div class="label">Completion</div>
+        <div class="value" id="summary-complete">0%</div>
+        <div class="meta" id="summary-count">0 / 0 questions</div>
+      </div>
+      <div class="stat">
+        <div class="label">Weighted compliance</div>
+        <div class="value" id="summary-wc">--</div>
+        <div class="meta" id="summary-wcmeta">achieved / weight</div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="form-grid">
-        <div class="field"><label for="vendor-name">Company Name *</label><input id="vendor-name" /></div>
-        <div class="field"><label for="contact-name">Primary Contact Name *</label><input id="contact-name" /></div>
-        <div class="field"><label for="contact-email">Contact Email *</label><input id="contact-email" type="email" /></div>
-        <div class="field">
-          <label for="data-class">Data Classification Handled</label>
-          <select id="data-class">
-            <option value="">Select...</option>
-            <option value="public">Public</option>
-            <option value="internal">Internal / Non-sensitive</option>
-            <option value="confidential">Confidential / PII</option>
-            <option value="restricted">Restricted / PHI / Financial</option>
+        <div>
+          <div class="label">Company Name</div>
+          <input id="vendor-name" class="input" placeholder="Acme Vendor" />
+        </div>
+        <div>
+          <div class="label">Primary Contact Name</div>
+          <input id="contact-name" class="input" placeholder="Jane Doe" />
+        </div>
+        <div>
+          <div class="label">Contact Email</div>
+          <input id="contact-email" class="input" placeholder="jane@vendor.com" />
+        </div>
+        <div>
+          <div class="label">Assessment Date</div>
+          <input id="assess-date" class="input" type="date" />
+        </div>
+        <div>
+          <div class="label">Data Classification Handled</div>
+          <select id="data-class" class="input">
+            <option value="confidential">confidential</option>
+            <option value="restricted">restricted</option>
+            <option value="internal">internal</option>
+            <option value="public">public</option>
           </select>
         </div>
-        <div class="field"><label for="vendor-industry">Industry / Sector</label><input id="vendor-industry" /></div>
-        <div class="field"><label for="assess-date">Assessment Date</label><input id="assess-date" type="date" /></div>
+        <div>
+          <div class="label">Industry / Sector</div>
+          <input id="vendor-industry" class="input" placeholder="FinTech, Retail, Healthcare" />
+        </div>
       </div>
 
-      <div class="progress-meta">
-        <div id="pct-label">0%</div>
-        <div><span id="answered-count">0</span>/<span id="total-count">0</span> questions</div>
+      <div class="progress" aria-label="completion">
+        <div id="progress-bar" class="bar"></div>
       </div>
-      <div class="progress-track"><div id="progress-bar"></div></div>
-      <div class="hint">Completion requirement: ≥ 80% (N/A is acceptable).</div>
 
-      <div id="questions-container" class="q-stack"></div>
-      <button id="submit-btn" onclick="submitAssessment()" disabled>Generate Risk Report →</button>
-      <div class="hint">TIP: If you want to look extra slick, answer YES/NO fast, then tweak partials.</div>
+      <div class="submit-row">
+        <div class="hint">Generate report once completion reaches ≥ 80%. N/A is acceptable.</div>
+        <button id="submit-btn" class="primary" onclick="submitAssessment()" disabled>Generate risk report</button>
+      </div>
+
+      <div class="questions" id="questions"></div>
     </div>
   </div>
 
   <script src="sig-lite-map.js"></script>
   <script>
-    const container = document.getElementById('questions-container');
+    const questionsEl = document.getElementById('questions');
     const answers = {};
     let totalQ = 0;
 
-    SIG_LITE_DOMAINS.forEach((domain) => {
-      const section = document.createElement('div');
-      section.innerHTML = `
-        <div class="q-id" style="margin-top:14px; color: rgba(255,255,255,.74);">
-          SECTION ${domain.id} • ${domain.name} • ${domain.nistRef} • ${domain.isoRef}
-        </div>`;
+    SIG_LITE_DOMAINS.forEach(domain => {
+      const header = document.createElement('div');
+      header.className = 'domain-header';
+      header.textContent = `Section ${domain.id} • ${domain.name} • ${domain.nistRef} • ${domain.isoRef}`;
+      questionsEl.appendChild(header);
 
-      domain.questions.forEach((q) => {
+      domain.questions.forEach(q => {
         totalQ++;
         const card = document.createElement('div');
-        card.className = 'question';
+        card.className = 'q-card';
         card.id = `card-${q.id}`;
         card.innerHTML = `
-          <div class="q-id">${q.id} // WEIGHT: ${q.weight}</div>
+          <div class="q-id">${q.id} // Weight ${q.weight}</div>
           <div class="q-text">${q.text}</div>
-          <div class="q-options">
-            <button onclick="ans('${q.id}','yes',this,${q.weight})">✓ YES</button>
-            <button onclick="ans('${q.id}','partial',this,${q.weight})">~ PARTIAL</button>
-            <button onclick="ans('${q.id}','no',this,${q.weight})">✗ NO</button>
-            <button onclick="ans('${q.id}','na',this,${q.weight})">— N/A</button>
-          </div>`;
-        section.appendChild(card);
+          <div class="opts">
+            <button class="btn" onclick="ans('${q.id}','yes',this,${q.weight})">YES</button>
+            <button class="btn" onclick="ans('${q.id}','partial',this,${q.weight})">PARTIAL</button>
+            <button class="btn" onclick="ans('${q.id}','no',this,${q.weight})">NO</button>
+            <button class="btn" onclick="ans('${q.id}','na',this,${q.weight})">N/A</button>
+          </div>
+        `;
+        questionsEl.appendChild(card);
       });
-
-      container.appendChild(section);
     });
 
-    document.getElementById('total-count').textContent = totalQ;
+    document.getElementById('assess-date').valueAsDate = new Date();
 
-    function ans(qid, value, btn, weight) {
-      answers[qid] = { value, weight };
-
-      btn.parentElement.querySelectorAll('button').forEach((b) => {
-        b.className = '';
-      });
-
-      btn.classList.add(`selected-${value}`);
-      document.getElementById(`card-${qid}`).classList.add('answered');
-
-      const done = Object.keys(answers).length;
-      const pct = Math.round((done / totalQ) * 100);
-
-      document.getElementById('progress-bar').style.width = pct + '%';
-      document.getElementById('pct-label').textContent = pct + '%';
-      document.getElementById('answered-count').textContent = done;
-
-      const armed = done >= totalQ * 0.8;
-      const btnSubmit = document.getElementById('submit-btn');
-      btnSubmit.disabled = !armed;
-      btnSubmit.classList.toggle('armed', armed);
+    function tierFromPercent(p){
+      if(p === null) return '--';
+      if(p >= 90) return 'LOW';
+      if(p >= 70) return 'MODERATE';
+      return 'HIGH';
     }
 
-    function submitAssessment() {
+    function computeWeighted(){
+      let totalWeight = 0;
+      let achieved = 0;
+      for(const a of Object.values(answers)){
+        if(a.value === 'na') continue;
+        totalWeight += a.weight;
+        achieved += a.weight * (a.value === 'yes' ? 1 : a.value === 'partial' ? 0.5 : 0);
+      }
+      if(totalWeight === 0){
+        return {totalWeight:0, achieved:0, percent:null, score:null};
+      }
+      const percent = Math.round((achieved / totalWeight) * 100);
+      const score = Math.round(100 - percent);
+      return {totalWeight, achieved, percent, score};
+    }
+
+    function updateSummary(done){
+      const vendor = (document.getElementById('vendor-name').value || '--').trim() || '--';
+      const industry = (document.getElementById('vendor-industry').value || 'industry').trim();
+      const dataClass = (document.getElementById('data-class').value || 'data class').trim();
+
+      document.getElementById('summary-vendor').textContent = vendor;
+      document.getElementById('summary-meta').textContent = `${industry} / ${dataClass}`;
+
+      const pct = totalQ ? Math.round((done / totalQ) * 100) : 0;
+      document.getElementById('summary-complete').textContent = `${pct}%`;
+      document.getElementById('summary-count').textContent = `${done} / ${totalQ} questions`;
+
+      const weighted = computeWeighted();
+      const tier = tierFromPercent(weighted.percent);
+      document.getElementById('summary-tier').textContent = tier;
+      document.getElementById('summary-score').textContent = weighted.score === null ? 'risk score' : `risk score ${weighted.score} / 100`;
+      document.getElementById('summary-wc').textContent = weighted.percent === null ? '--' : `${weighted.percent}%`;
+      document.getElementById('summary-wcmeta').textContent = `${weighted.achieved.toFixed(1)} / ${weighted.totalWeight.toFixed(1)} weight`;
+
+      const ready = done >= Math.ceil(totalQ * 0.8);
+      const pill = document.getElementById('report-pill');
+      pill.classList.toggle('disabled', !ready);
+      pill.classList.toggle('pill-ready', ready);
+      pill.classList.toggle('pill-pending', !ready);
+      pill.textContent = ready ? 'REPORT READY' : 'REPORT PENDING';
+
+      document.getElementById('submit-btn').disabled = !ready;
+      document.getElementById('progress-bar').style.width = pct + '%';
+    }
+
+    function ans(qid, value, btn, weight){
+      answers[qid] = {value, weight};
+
+      btn.closest('.opts').querySelectorAll('.btn').forEach(b => {
+        b.classList.remove('selected-yes','selected-partial','selected-no','selected-na');
+      });
+      btn.classList.add(`selected-${value}`);
+
+      const done = Object.keys(answers).length;
+      updateSummary(done);
+    }
+
+    function submitAssessment(){
+      const weighted = computeWeighted();
       const d = {
         vendorName: document.getElementById('vendor-name').value || 'Unknown Vendor',
         contactName: document.getElementById('contact-name').value || '',
@@ -396,13 +357,24 @@
         industry: document.getElementById('vendor-industry').value || '',
         assessDate: document.getElementById('assess-date').value || new Date().toISOString().split('T')[0],
         answers,
+        weightedPercent: weighted.percent,
+        weightedAchieved: weighted.achieved,
+        weightedTotal: weighted.totalWeight,
+        riskTier: tierFromPercent(weighted.percent)
       };
 
       localStorage.setItem('sig_lite_assessment', JSON.stringify(d));
       window.location.href = 'dashboard.html';
     }
 
-    document.getElementById('assess-date').valueAsDate = new Date();
+    // update header summary as metadata fields change
+    ['vendor-name','vendor-industry','data-class'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => updateSummary(Object.keys(answers).length));
+      el.addEventListener('change', () => updateSummary(Object.keys(answers).length));
+    });
+
+    updateSummary(0);
   </script>
 </body>
 </html>
