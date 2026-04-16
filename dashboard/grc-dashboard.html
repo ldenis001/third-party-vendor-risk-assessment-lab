@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Third-Party Vendor Risk Assessment — GRC Dashboard</title>
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #242837; --border: #2e3347;
+  --text: #e4e7f1; --text2: #9ca3be; --accent: #6c8aff; --accent2: #4a6adf;
+  --green: #34d399; --yellow: #fbbf24; --orange: #f97316; --red: #ef4444;
+  --teal: #2dd4bf; --purple: #a78bfa;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height:100vh; }
+.app { display:grid; grid-template-columns: 300px 1fr; grid-template-rows: 56px 1fr; height:100vh; }
+header { grid-column:1/-1; background: var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
+header h1 { font-size:16px; font-weight:600; letter-spacing:.5px; }
+header .badge { background: var(--accent2); color:#fff; font-size:11px; padding:3px 10px; border-radius:12px; }
+.sidebar { background: var(--surface); border-right:1px solid var(--border); padding:20px 16px; overflow-y:auto; }
+.main { padding:24px; overflow-y:auto; }
+
+/* Sidebar */
+.section-label { font-size:10px; text-transform:uppercase; letter-spacing:1.2px; color:var(--text2); margin:16px 0 8px; }
+.field label { display:block; font-size:11px; color:var(--text2); margin-bottom:4px; }
+.field { margin-bottom:12px; }
+.field input, .field select, .field textarea { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:6px; font-size:13px; }
+.field input:focus, .field select:focus { outline:none; border-color:var(--accent); }
+.data-class-group { display:flex; flex-wrap:wrap; gap:6px; }
+.data-class-group label { font-size:12px; color:var(--text); display:flex; align-items:center; gap:4px; cursor:pointer; }
+.data-class-group input[type=checkbox] { accent-color: var(--accent); }
+
+/* Risk Gauge */
+.gauge-wrap { text-align:center; margin:12px 0; }
+.gauge-label { font-size:10px; text-transform:uppercase; color:var(--text2); letter-spacing:1px; margin-bottom:4px; }
+.gauge-score { font-size:42px; font-weight:700; }
+.gauge-tier { font-size:13px; font-weight:600; margin-top:2px; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:20px; }
+.tab { padding:7px 14px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; background:var(--surface); border:1px solid var(--border); color:var(--text2); transition:.15s; }
+.tab:hover { border-color:var(--accent); color:var(--text); }
+.tab.active { background:var(--accent2); border-color:var(--accent); color:#fff; }
+
+/* Framework Panel */
+.fw-panel { display:none; }
+.fw-panel.active { display:block; }
+.fw-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.fw-header h2 { font-size:18px; font-weight:600; }
+.fw-progress { display:flex; align-items:center; gap:10px; }
+.fw-progress .bar-bg { width:160px; height:8px; background:var(--surface); border-radius:4px; overflow:hidden; }
+.fw-progress .bar-fill { height:100%; border-radius:4px; transition:width .3s; }
+.fw-progress .pct { font-size:13px; font-weight:600; min-width:40px; text-align:right; }
+
+/* Question table */
+.q-table { width:100%; border-collapse:separate; border-spacing:0; }
+.q-table th { text-align:left; font-size:11px; text-transform:uppercase; color:var(--text2); letter-spacing:.8px; padding:8px 12px; border-bottom:1px solid var(--border); }
+.q-table td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+.q-table tr:hover td { background:var(--surface2); }
+.q-table .ctrl-id { color:var(--accent); font-weight:600; font-size:12px; white-space:nowrap; }
+.q-table select { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:5px 8px; border-radius:5px; font-size:12px; }
+.q-table select.scored-compliant { border-color:var(--green); }
+.q-table select.scored-partial { border-color:var(--yellow); }
+.q-table select.scored-noncompliant { border-color:var(--red); }
+.q-table select.scored-na { border-color:var(--text2); }
+.q-table .notes-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:5px 8px; border-radius:5px; font-size:12px; }
+
+/* Summary cards */
+.summary-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; margin-bottom:24px; }
+.summary-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+.summary-card .fw-name { font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--text2); margin-bottom:6px; }
+.summary-card .fw-score { font-size:28px; font-weight:700; }
+.summary-card .fw-status { font-size:11px; margin-top:4px; font-weight:500; }
+
+/* Buttons */
+.btn { padding:10px 20px; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
+.btn-primary { background:var(--accent2); color:#fff; }
+.btn-primary:hover { background:var(--accent); }
+.btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover { background:var(--border); }
+.actions { display:flex; gap:10px; margin-top:20px; }
+
+/* Report modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:100; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:12px; max-width:900px; width:90%; max-height:85vh; overflow-y:auto; padding:28px; }
+.modal h2 { margin-bottom:16px; }
+.modal .close-btn { float:right; background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; }
+.report-section { margin-bottom:20px; }
+.report-section h3 { font-size:14px; color:var(--accent); margin-bottom:8px; }
+.report-table { width:100%; border-collapse:collapse; font-size:12px; }
+.report-table th, .report-table td { padding:6px 10px; border:1px solid var(--border); text-align:left; }
+.report-table th { background:var(--surface2); color:var(--text2); text-transform:uppercase; font-size:10px; letter-spacing:.5px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <h1>Third-Party Vendor Risk Assessment — GRC Dashboard</h1>
+      <a href="index.html" style="font-size:12px;color:var(--accent);text-decoration:none;border:1px solid var(--border);padding:4px 12px;border-radius:6px;">← SIG Lite Intake</a>
+      <a href="dashboard.html" style="font-size:12px;color:var(--accent);text-decoration:none;border:1px solid var(--border);padding:4px 12px;border-radius:6px;">SIG Report →</a>
+    </div>
+    <span class="badge" id="reportBadge">REPORT PENDING</span>
+  </header>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="section-label">Vendor Information</div>
+    <div class="field"><label>Company Name</label><input type="text" id="vendorName" placeholder="e.g. Acme Corp"></div>
+    <div class="field"><label>Primary Contact</label><input type="text" id="contactName" placeholder="Full name"></div>
+    <div class="field"><label>Contact Email</label><input type="email" id="contactEmail" placeholder="email@company.com"></div>
+    <div class="field"><label>Assessment Date</label><input type="date" id="assessDate"></div>
+    <div class="field">
+      <label>Industry / Sector</label>
+      <select id="industry">
+        <option value="">Select…</option>
+        <option>Healthcare</option><option>Financial Services</option><option>Government / Federal</option>
+        <option>Technology / SaaS</option><option>Energy / Utilities</option><option>Transportation</option>
+        <option>Retail / E-Commerce</option><option>Manufacturing</option><option>Education</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Data Classification Handled</label>
+      <div class="data-class-group">
+        <label><input type="checkbox" value="confidential"> Confidential</label>
+        <label><input type="checkbox" value="restricted"> Restricted</label>
+        <label><input type="checkbox" value="internal"> Internal</label>
+        <label><input type="checkbox" value="public"> Public</label>
+      </div>
+    </div>
+
+    <div class="section-label">Composite Risk</div>
+    <div class="gauge-wrap">
+      <div class="gauge-label">Overall Score</div>
+      <div class="gauge-score" id="overallScore" style="color:var(--text2)">—</div>
+      <div class="gauge-tier" id="overallTier" style="color:var(--text2)">Not Assessed</div>
+    </div>
+
+    <div class="section-label">Applicable Frameworks</div>
+    <div id="fwToggles" style="display:flex;flex-direction:column;gap:6px;"></div>
+
+    <div class="actions" style="flex-direction:column; margin-top:20px;">
+      <button class="btn btn-primary" onclick="generateReport()">Generate Risk Report</button>
+      <button class="btn btn-secondary" onclick="resetAll()">Reset Assessment</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="section-label">Framework Compliance Summary</div>
+    <div class="summary-grid" id="summaryGrid"></div>
+
+    <div class="tabs" id="tabBar"></div>
+    <div id="panelContainer"></div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <button class="close-btn" onclick="document.getElementById('reportModal').classList.remove('open')">&times;</button>
+    <h2>Vendor Compliance Risk Report</h2>
+    <div id="reportContent"></div>
+  </div>
+</div>
+
+<script>
+// ── Framework definitions with key controls per GRC skill ──
+const FRAMEWORKS = {
+  iso27001: {
+    name: "ISO 27001:2022", short: "ISO 27001", color: "#6c8aff",
+    controls: [
+      { id:"A.5.1", text:"Information security policies established and reviewed", category:"Organizational" },
+      { id:"A.5.2", text:"Information security roles and responsibilities defined", category:"Organizational" },
+      { id:"A.5.7", text:"Threat intelligence collected and analysed", category:"Organizational" },
+      { id:"A.5.10", text:"Acceptable use of information and assets policy", category:"Organizational" },
+      { id:"A.5.15", text:"Access control policy and enforcement", category:"Organizational" },
+      { id:"A.5.19", text:"Information security in supplier relationships", category:"Organizational" },
+      { id:"A.5.23", text:"Cloud services security requirements", category:"Organizational" },
+      { id:"A.5.24", text:"Incident management planning and preparation", category:"Organizational" },
+      { id:"A.5.29", text:"Business continuity — ICT readiness", category:"Organizational" },
+      { id:"A.6.1", text:"Personnel screening and background checks", category:"People" },
+      { id:"A.6.3", text:"Information security awareness and training", category:"People" },
+      { id:"A.7.1", text:"Physical security perimeters defined", category:"Physical" },
+      { id:"A.8.1", text:"User endpoint devices secured", category:"Technological" },
+      { id:"A.8.5", text:"Secure authentication mechanisms", category:"Technological" },
+      { id:"A.8.9", text:"Configuration management of systems", category:"Technological" },
+      { id:"A.8.12", text:"Data leakage prevention implemented", category:"Technological" },
+      { id:"A.8.15", text:"Logging and monitoring of activities", category:"Technological" },
+      { id:"A.8.24", text:"Cryptography — encryption at rest and in transit", category:"Technological" },
+      { id:"A.8.28", text:"Secure coding practices enforced", category:"Technological" },
+    ]
+  },
+  soc2: {
+    name: "SOC 2 (TSC)", short: "SOC 2", color: "#34d399",
+    controls: [
+      { id:"CC1.1", text:"Commitment to integrity and ethical values (tone at top)", category:"Control Environment" },
+      { id:"CC1.3", text:"Board oversight of internal controls", category:"Control Environment" },
+      { id:"CC2.1", text:"Information quality and communication of objectives", category:"Communication" },
+      { id:"CC3.1", text:"Risk assessment process and identification of risks", category:"Risk Assessment" },
+      { id:"CC3.4", text:"Assessment of fraud risk", category:"Risk Assessment" },
+      { id:"CC5.1", text:"Control activities mitigate risks to acceptable levels", category:"Control Activities" },
+      { id:"CC6.1", text:"Logical access security — authentication and authorisation", category:"Access Controls" },
+      { id:"CC6.3", text:"Role-based access and least privilege", category:"Access Controls" },
+      { id:"CC6.6", text:"External threats — boundary protection measures", category:"Access Controls" },
+      { id:"CC6.8", text:"Controls to prevent or detect unauthorised software", category:"Access Controls" },
+      { id:"CC7.1", text:"Vulnerability and configuration management", category:"System Operations" },
+      { id:"CC7.2", text:"Anomaly detection and continuous monitoring", category:"System Operations" },
+      { id:"CC7.3", text:"Incident response evaluation and escalation", category:"System Operations" },
+      { id:"CC8.1", text:"Change management — authorisation and testing", category:"Change Mgmt" },
+      { id:"CC9.2", text:"Vendor and third-party risk management", category:"Risk Mitigation" },
+      { id:"A1.1", text:"Availability — capacity planning and recovery objectives", category:"Availability" },
+      { id:"C1.1", text:"Confidentiality — classification and protection of data", category:"Confidentiality" },
+      { id:"PI1.1", text:"Processing integrity — accuracy and completeness", category:"Processing Integrity" },
+    ]
+  },
+  fedramp: {
+    name: "FedRAMP (NIST 800-53 Rev 5)", short: "FedRAMP", color: "#f97316",
+    controls: [
+      { id:"AC", text:"Access Control — IAM, RBAC, least privilege, remote access", category:"Access Control" },
+      { id:"AT", text:"Awareness & Training — security and privacy training", category:"Awareness" },
+      { id:"AU", text:"Audit & Accountability — logging, SIEM, audit review", category:"Audit" },
+      { id:"CA", text:"Assessment & Authorization — ConMon, 3PAO, ATO process", category:"Assessment" },
+      { id:"CM", text:"Configuration Management — baselines, change control", category:"Config Mgmt" },
+      { id:"CP", text:"Contingency Planning — BCP/DR tested annually", category:"Contingency" },
+      { id:"IA", text:"Identification & Authentication — MFA, FIPS 140-2/3 crypto", category:"Auth" },
+      { id:"IR", text:"Incident Response — IRP tested annually, reporting SLAs", category:"Incident" },
+      { id:"PE", text:"Physical & Environmental — datacenter controls", category:"Physical" },
+      { id:"PL", text:"Planning — SSP, rules of behavior", category:"Planning" },
+      { id:"PT", text:"PII Processing & Transparency — privacy controls (Rev 5 new)", category:"Privacy" },
+      { id:"RA", text:"Risk Assessment — vulnerability scanning, MITRE ATT&CK", category:"Risk" },
+      { id:"SA", text:"System & Services Acquisition — SDLC, supply chain", category:"Acquisition" },
+      { id:"SC", text:"System & Comms Protection — encryption in transit, segmentation", category:"Comms" },
+      { id:"SI", text:"System & Info Integrity — patching, malware, integrity monitoring", category:"Integrity" },
+      { id:"SR", text:"Supply Chain Risk Management (Rev 5 new)", category:"Supply Chain" },
+    ]
+  },
+  gdpr: {
+    name: "GDPR (EU/UK)", short: "GDPR", color: "#a78bfa",
+    controls: [
+      { id:"Art.5", text:"Principles — lawfulness, fairness, transparency, data minimisation", category:"Principles" },
+      { id:"Art.6", text:"Lawful basis for processing established and documented", category:"Lawful Basis" },
+      { id:"Art.7", text:"Consent — freely given, specific, informed, withdrawable", category:"Consent" },
+      { id:"Art.12-14", text:"Transparency — privacy notice with all required information", category:"Transparency" },
+      { id:"Art.15-22", text:"Data subject rights — access, rectification, erasure, portability", category:"Rights" },
+      { id:"Art.24-25", text:"Privacy by design and by default", category:"Privacy Design" },
+      { id:"Art.28", text:"Processor agreements — DPA with all Art.28 clauses", category:"Processors" },
+      { id:"Art.30", text:"Records of processing activities (RoPA)", category:"Documentation" },
+      { id:"Art.32", text:"Security of processing — encryption, pseudonymisation, access controls", category:"Security" },
+      { id:"Art.33", text:"Breach notification to supervisory authority (72 hours)", category:"Breach" },
+      { id:"Art.34", text:"Breach notification to data subjects (high risk)", category:"Breach" },
+      { id:"Art.35", text:"Data protection impact assessment (DPIA) for high-risk processing", category:"DPIA" },
+      { id:"Art.37-39", text:"Data protection officer (DPO) designation if required", category:"DPO" },
+      { id:"Art.44-49", text:"Cross-border transfer safeguards — SCCs, adequacy, BCRs", category:"Transfers" },
+    ]
+  },
+  hipaa: {
+    name: "HIPAA", short: "HIPAA", color: "#f472b6",
+    controls: [
+      { id:"§164.308(a)(1)", text:"Security management — risk analysis and risk management", category:"Administrative" },
+      { id:"§164.308(a)(3)", text:"Workforce security — authorisation and supervision", category:"Administrative" },
+      { id:"§164.308(a)(4)", text:"Information access management — access authorisation", category:"Administrative" },
+      { id:"§164.308(a)(5)", text:"Security awareness and training programme", category:"Administrative" },
+      { id:"§164.308(a)(6)", text:"Security incident procedures and response", category:"Administrative" },
+      { id:"§164.308(a)(7)", text:"Contingency plan — backup, disaster recovery, emergency", category:"Administrative" },
+      { id:"§164.308(b)", text:"Business associate contracts and arrangements (BAA)", category:"Administrative" },
+      { id:"§164.310(a)", text:"Facility access controls", category:"Physical" },
+      { id:"§164.310(d)", text:"Device and media controls — disposal, re-use, accountability", category:"Physical" },
+      { id:"§164.312(a)", text:"Access control — unique user IDs, emergency access, auto logoff", category:"Technical" },
+      { id:"§164.312(b)", text:"Audit controls — logging of ePHI access and activity", category:"Technical" },
+      { id:"§164.312(c)", text:"Integrity controls — mechanism to authenticate ePHI", category:"Technical" },
+      { id:"§164.312(d)", text:"Person or entity authentication", category:"Technical" },
+      { id:"§164.312(e)", text:"Transmission security — encryption of ePHI in transit", category:"Technical" },
+      { id:"§164.520", text:"Notice of privacy practices provided to individuals", category:"Privacy Rule" },
+      { id:"§164.524", text:"Individual right of access to PHI", category:"Privacy Rule" },
+    ]
+  },
+  nist_csf: {
+    name: "NIST CSF 2.0", short: "NIST CSF", color: "#2dd4bf",
+    controls: [
+      { id:"GV.OC", text:"Organisational context — mission, stakeholders, legal requirements", category:"Govern" },
+      { id:"GV.RM", text:"Risk management strategy — risk appetite, tolerance documented", category:"Govern" },
+      { id:"GV.RR", text:"Roles, responsibilities, and authorities established", category:"Govern" },
+      { id:"GV.SC", text:"Supply chain risk management strategy", category:"Govern" },
+      { id:"ID.AM", text:"Asset management — inventory of hardware, software, data", category:"Identify" },
+      { id:"ID.RA", text:"Risk assessment — threats, vulnerabilities, likelihood, impact", category:"Identify" },
+      { id:"PR.AA", text:"Access control — identity management, authentication, authorisation", category:"Protect" },
+      { id:"PR.AT", text:"Awareness and training for all personnel", category:"Protect" },
+      { id:"PR.DS", text:"Data security — at rest, in transit, data integrity", category:"Protect" },
+      { id:"PR.PS", text:"Platform security — configuration baselines, secure by design", category:"Protect" },
+      { id:"PR.IR", text:"Technology infrastructure resilience — backups, redundancy", category:"Protect" },
+      { id:"DE.CM", text:"Continuous monitoring — network, environment, personnel activity", category:"Detect" },
+      { id:"DE.AE", text:"Adverse event analysis — anomaly detection, correlation", category:"Detect" },
+      { id:"RS.MA", text:"Incident management — triage, escalation, containment", category:"Respond" },
+      { id:"RS.CO", text:"Incident reporting and communication", category:"Respond" },
+      { id:"RC.RP", text:"Recovery plan execution — restore operations", category:"Recover" },
+    ]
+  },
+  pci_dss: {
+    name: "PCI DSS v4.0.1", short: "PCI DSS", color: "#fbbf24",
+    controls: [
+      { id:"Req 1", text:"Install and maintain network security controls (firewalls, NSCs)", category:"Secure Network" },
+      { id:"Req 2", text:"Apply secure configurations to all system components", category:"Secure Network" },
+      { id:"Req 3", text:"Protect stored account data (PAN encryption, retention limits)", category:"Protect Data" },
+      { id:"Req 4", text:"Protect cardholder data in transit with strong cryptography", category:"Protect Data" },
+      { id:"Req 5", text:"Protect systems against malware with anti-malware solutions", category:"Vuln Mgmt" },
+      { id:"Req 6", text:"Develop and maintain secure systems and software", category:"Vuln Mgmt" },
+      { id:"Req 7", text:"Restrict access by business need-to-know", category:"Access Control" },
+      { id:"Req 8", text:"Identify users and authenticate access to system components", category:"Access Control" },
+      { id:"Req 9", text:"Restrict physical access to cardholder data", category:"Access Control" },
+      { id:"Req 10", text:"Log and monitor all access to system components and CHD", category:"Monitoring" },
+      { id:"Req 11", text:"Test security of systems and networks regularly (pen tests, ASV)", category:"Monitoring" },
+      { id:"Req 12", text:"Support information security with organisational policies", category:"Policy" },
+    ]
+  },
+  tsa: {
+    name: "TSA Cybersecurity Directives", short: "TSA Cyber", color: "#fb923c",
+    controls: [
+      { id:"CCS-1", text:"Critical Cyber Systems (CCS) identification and boundary definition", category:"CCS Identification" },
+      { id:"COORD", text:"Cybersecurity Coordinator designated and available 24/7", category:"Governance" },
+      { id:"IRP", text:"Incident response plan developed, tested, and updated", category:"Incident Response" },
+      { id:"CISA-RPT", text:"Cybersecurity incident reporting to CISA within required timeline", category:"Incident Response" },
+      { id:"SEG", text:"IT/OT network segmentation — policies and enforcement", category:"Network Security" },
+      { id:"ACCESS", text:"Access control measures for Critical Cyber Systems", category:"Access Control" },
+      { id:"PATCH", text:"Continuous monitoring and patching of CCS vulnerabilities", category:"Vulnerability Mgmt" },
+      { id:"CIP", text:"Cybersecurity Implementation Plan (CIP) developed and approved", category:"Planning" },
+      { id:"CAP", text:"Cybersecurity Assessment Plan (CAP) — annual assessment", category:"Assessment" },
+      { id:"CRMP", text:"Cyber Risk Management Program — ongoing risk-based approach", category:"Risk Management" },
+    ]
+  },
+  iso42001: {
+    name: "ISO 42001:2023 (AI)", short: "ISO 42001", color: "#c084fc",
+    controls: [
+      { id:"A.2.2", text:"AI policy — responsible AI principles, scope, objectives", category:"AI Governance" },
+      { id:"A.2.3", text:"Roles and responsibilities for AI governance", category:"AI Governance" },
+      { id:"A.3.2", text:"AI risk assessment — likelihood × severity for AI-specific risks", category:"AI Risk" },
+      { id:"A.3.3", text:"AI system impact assessment (AISIA) — societal and individual", category:"AI Risk" },
+      { id:"A.4.2", text:"Intended purpose documented for each AI system", category:"AI Lifecycle" },
+      { id:"A.4.5", text:"AI system lifecycle management — development to retirement", category:"AI Lifecycle" },
+      { id:"A.5.2", text:"AI system logging and monitoring", category:"AI Operations" },
+      { id:"A.5.4", text:"Human oversight controls for AI decision-making", category:"AI Operations" },
+      { id:"A.6.1", text:"Processes for responsible and ethical AI", category:"Responsible AI" },
+      { id:"A.6.2", text:"Transparency and explainability of AI outputs", category:"Responsible AI" },
+      { id:"A.7.2", text:"Data quality management for training and validation data", category:"Data Governance" },
+      { id:"A.7.4", text:"Data provenance, lineage, and bias controls", category:"Data Governance" },
+      { id:"A.8.1", text:"AI incident management and response", category:"AI Incident" },
+      { id:"A.9.1", text:"Third-party AI — supplier assessment and contractual controls", category:"AI Supply Chain" },
+      { id:"A.10.1", text:"Stakeholder communication about AI system use", category:"Communication" },
+    ]
+  }
+};
+
+const STATUS_OPTIONS = [
+  { value:"", label:"Select…", score:null },
+  { value:"compliant", label:"Compliant", score:100 },
+  { value:"partial", label:"Partial", score:50 },
+  { value:"noncompliant", label:"Non-Compliant", score:0 },
+  { value:"na", label:"N/A", score:null },
+];
+
+// ── State ──
+let enabledFrameworks = {};
+let responses = {};
+
+// ── Initialize ──
+function init() {
+  document.getElementById('assessDate').valueAsDate = new Date();
+  const toggleContainer = document.getElementById('fwToggles');
+  Object.keys(FRAMEWORKS).forEach(key => {
+    enabledFrameworks[key] = true;
+    responses[key] = {};
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;';
+    label.innerHTML = `<input type="checkbox" checked data-fw="${key}" style="accent-color:${FRAMEWORKS[key].color}"> ${FRAMEWORKS[key].short}`;
+    label.querySelector('input').addEventListener('change', e => {
+      enabledFrameworks[key] = e.target.checked;
+      renderAll();
+    });
+    toggleContainer.appendChild(label);
+  });
+  renderAll();
+}
+
+function renderAll() {
+  renderSummary();
+  renderTabs();
+  renderPanels();
+  updateOverallScore();
+}
+
+function renderSummary() {
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = '';
+  Object.entries(FRAMEWORKS).forEach(([key, fw]) => {
+    if (!enabledFrameworks[key]) return;
+    const { score, answered, total } = calcFrameworkScore(key);
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+    card.style.borderTop = `3px solid ${fw.color}`;
+    const displayScore = answered > 0 ? Math.round(score) + '%' : '—';
+    const scoreColor = answered > 0 ? scoreToColor(score) : 'var(--text2)';
+    const status = answered > 0 ? scoreToLabel(score) : `0 / ${total} assessed`;
+    card.innerHTML = `<div class="fw-name">${fw.short}</div><div class="fw-score" style="color:${scoreColor}">${displayScore}</div><div class="fw-status" style="color:${scoreColor}">${status}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function renderTabs() {
+  const bar = document.getElementById('tabBar');
+  const activeKey = bar.querySelector('.tab.active')?.dataset.fw || Object.keys(FRAMEWORKS).find(k => enabledFrameworks[k]);
+  bar.innerHTML = '';
+  Object.entries(FRAMEWORKS).forEach(([key, fw]) => {
+    if (!enabledFrameworks[key]) return;
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (key === activeKey ? ' active' : '');
+    tab.dataset.fw = key;
+    tab.textContent = fw.short;
+    tab.style.borderColor = key === activeKey ? fw.color : '';
+    tab.addEventListener('click', () => {
+      bar.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.style.borderColor = ''; });
+      tab.classList.add('active');
+      tab.style.borderColor = fw.color;
+      document.querySelectorAll('.fw-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + key).classList.add('active');
+    });
+    bar.appendChild(tab);
+  });
+}
+
+function renderPanels() {
+  const container = document.getElementById('panelContainer');
+  container.innerHTML = '';
+  const activeTab = document.querySelector('.tab.active');
+  const activeKey = activeTab ? activeTab.dataset.fw : Object.keys(FRAMEWORKS).find(k => enabledFrameworks[k]);
+
+  Object.entries(FRAMEWORKS).forEach(([key, fw]) => {
+    if (!enabledFrameworks[key]) return;
+    const panel = document.createElement('div');
+    panel.className = 'fw-panel' + (key === activeKey ? ' active' : '');
+    panel.id = 'panel-' + key;
+
+    const { score, answered, total } = calcFrameworkScore(key);
+    const pct = answered > 0 ? Math.round(score) : 0;
+
+    let html = `<div class="fw-header"><h2>${fw.name}</h2><div class="fw-progress"><div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${scoreToColor(pct)}"></div></div><span class="pct" style="color:${scoreToColor(pct)}">${answered > 0 ? pct + '%' : '—'}</span></div></div>`;
+    html += `<table class="q-table"><thead><tr><th style="width:100px">Control</th><th>Requirement</th><th style="width:80px">Category</th><th style="width:140px">Status</th><th style="width:180px">Notes / Evidence</th></tr></thead><tbody>`;
+    fw.controls.forEach((ctrl, i) => {
+      const val = responses[key][i] || '';
+      html += `<tr>
+        <td class="ctrl-id">${ctrl.id}</td>
+        <td>${ctrl.text}</td>
+        <td style="font-size:11px;color:var(--text2)">${ctrl.category}</td>
+        <td><select class="scored-${val}" data-fw="${key}" data-idx="${i}" onchange="handleScore(this)">
+          ${STATUS_OPTIONS.map(o => `<option value="${o.value}" ${o.value===val?'selected':''}>${o.label}</option>`).join('')}
+        </select></td>
+        <td><input class="notes-input" type="text" placeholder="Evidence or notes…" data-fw="${key}" data-idx="${i}"></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    panel.innerHTML = html;
+    container.appendChild(panel);
+  });
+}
+
+function handleScore(el) {
+  const fw = el.dataset.fw, idx = el.dataset.idx;
+  responses[fw][idx] = el.value;
+  el.className = el.value ? 'scored-' + el.value : '';
+  renderSummary();
+  updateOverallScore();
+  // Update panel progress bar
+  const { score, answered } = calcFrameworkScore(fw);
+  const pct = answered > 0 ? Math.round(score) : 0;
+  const panel = document.getElementById('panel-' + fw);
+  const fill = panel.querySelector('.bar-fill');
+  const pctEl = panel.querySelector('.pct');
+  fill.style.width = pct + '%';
+  fill.style.background = scoreToColor(pct);
+  pctEl.textContent = answered > 0 ? pct + '%' : '—';
+  pctEl.style.color = scoreToColor(pct);
+}
+
+function calcFrameworkScore(key) {
+  const fw = FRAMEWORKS[key];
+  let totalScore = 0, answered = 0;
+  fw.controls.forEach((_, i) => {
+    const val = responses[key][i];
+    const opt = STATUS_OPTIONS.find(o => o.value === val);
+    if (opt && opt.score !== null) { totalScore += opt.score; answered++; }
+  });
+  return { score: answered > 0 ? totalScore / answered : 0, answered, total: fw.controls.length };
+}
+
+function updateOverallScore() {
+  let totalScore = 0, totalAnswered = 0;
+  Object.keys(FRAMEWORKS).forEach(key => {
+    if (!enabledFrameworks[key]) return;
+    const { score, answered } = calcFrameworkScore(key);
+    totalScore += score * answered;
+    totalAnswered += answered;
+  });
+  const overall = totalAnswered > 0 ? totalScore / totalAnswered : -1;
+  const scoreEl = document.getElementById('overallScore');
+  const tierEl = document.getElementById('overallTier');
+  if (overall < 0) {
+    scoreEl.textContent = '—'; scoreEl.style.color = 'var(--text2)';
+    tierEl.textContent = 'Not Assessed'; tierEl.style.color = 'var(--text2)';
+  } else {
+    scoreEl.textContent = Math.round(overall) + '%';
+    scoreEl.style.color = scoreToColor(overall);
+    tierEl.textContent = scoreToLabel(overall);
+    tierEl.style.color = scoreToColor(overall);
+  }
+}
+
+function scoreToColor(s) {
+  if (s >= 80) return 'var(--green)';
+  if (s >= 60) return 'var(--yellow)';
+  if (s >= 40) return 'var(--orange)';
+  return 'var(--red)';
+}
+function scoreToLabel(s) {
+  if (s >= 80) return 'Low Risk';
+  if (s >= 60) return 'Moderate Risk';
+  if (s >= 40) return 'High Risk';
+  return 'Critical Risk';
+}
+
+function generateReport() {
+  const vendor = document.getElementById('vendorName').value || 'Unknown Vendor';
+  const date = document.getElementById('assessDate').value || new Date().toISOString().slice(0,10);
+  const industry = document.getElementById('industry').value || 'Not specified';
+  const contact = document.getElementById('contactName').value || '—';
+  const email = document.getElementById('contactEmail').value || '—';
+
+  let anyAnswered = false;
+  Object.keys(FRAMEWORKS).forEach(k => { if (enabledFrameworks[k] && calcFrameworkScore(k).answered > 0) anyAnswered = true; });
+  if (!anyAnswered) { alert('Please assess at least one control before generating a report.'); return; }
+
+  let html = `<div class="report-section"><h3>Assessment Summary</h3>
+    <table class="report-table"><tr><th>Vendor</th><td>${vendor}</td><th>Date</th><td>${date}</td></tr>
+    <tr><th>Industry</th><td>${industry}</td><th>Contact</th><td>${contact} (${email})</td></tr></table></div>`;
+
+  html += `<div class="report-section"><h3>Framework Scores</h3><table class="report-table">
+    <tr><th>Framework</th><th>Score</th><th>Risk Level</th><th>Assessed</th><th>Gaps (Non-Compliant)</th></tr>`;
+
+  let gaps = [];
+  Object.entries(FRAMEWORKS).forEach(([key, fw]) => {
+    if (!enabledFrameworks[key]) return;
+    const { score, answered, total } = calcFrameworkScore(key);
+    if (answered === 0) return;
+    const pct = Math.round(score);
+    let gapCount = 0;
+    fw.controls.forEach((ctrl, i) => {
+      if (responses[key][i] === 'noncompliant') {
+        gapCount++;
+        gaps.push({ framework: fw.short, id: ctrl.id, text: ctrl.text });
+      }
+    });
+    html += `<tr><td>${fw.short}</td><td style="color:${scoreToColor(pct)};font-weight:600">${pct}%</td>
+      <td style="color:${scoreToColor(pct)}">${scoreToLabel(pct)}</td>
+      <td>${answered} / ${total}</td><td style="color:${gapCount > 0 ? 'var(--red)' : 'var(--green)'}">${gapCount}</td></tr>`;
+  });
+  html += '</table></div>';
+
+  if (gaps.length > 0) {
+    html += `<div class="report-section"><h3>Critical Gaps — Non-Compliant Controls</h3><table class="report-table">
+      <tr><th>Framework</th><th>Control</th><th>Requirement</th></tr>`;
+    gaps.forEach(g => { html += `<tr><td>${g.framework}</td><td style="color:var(--accent);font-weight:600">${g.id}</td><td>${g.text}</td></tr>`; });
+    html += '</table></div>';
+  }
+
+  // Recommendations
+  html += `<div class="report-section"><h3>Recommendations</h3><table class="report-table"><tr><th>#</th><th>Action</th><th>Priority</th></tr>`;
+  let recNum = 1;
+  if (gaps.length > 0) html += `<tr><td>${recNum++}</td><td>Address ${gaps.length} non-compliant control(s) identified above — develop remediation plan with owner and timeline</td><td style="color:var(--red)">Critical</td></tr>`;
+
+  Object.entries(FRAMEWORKS).forEach(([key, fw]) => {
+    if (!enabledFrameworks[key]) return;
+    let partials = 0;
+    fw.controls.forEach((_, i) => { if (responses[key][i] === 'partial') partials++; });
+    if (partials > 0) html += `<tr><td>${recNum++}</td><td>${fw.short}: ${partials} partially compliant control(s) — request evidence or remediation timeline from vendor</td><td style="color:var(--yellow)">High</td></tr>`;
+  });
+  html += `<tr><td>${recNum++}</td><td>Schedule follow-up assessment in 90 days to verify remediation progress</td><td style="color:var(--teal)">Medium</td></tr>`;
+  html += '</table></div>';
+
+  document.getElementById('reportContent').innerHTML = html;
+  document.getElementById('reportModal').classList.add('open');
+  document.getElementById('reportBadge').textContent = 'REPORT GENERATED';
+  document.getElementById('reportBadge').style.background = 'var(--green)';
+}
+
+function resetAll() {
+  if (!confirm('Reset all assessment data?')) return;
+  Object.keys(responses).forEach(k => responses[k] = {});
+  renderAll();
+  document.getElementById('reportBadge').textContent = 'REPORT PENDING';
+  document.getElementById('reportBadge').style.background = '';
+}
+
+init();
+</script>
+</body>
+</html>
